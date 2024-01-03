@@ -1,6 +1,3 @@
-import socket
-import pickle
-import requests
 import threading
 import time  # Added time for sleep function
 import logging
@@ -43,7 +40,8 @@ class TranscriptionClient:
 
         # Wait for the transcription thread to finish and return the response
         transcribe_thread.join()
-        logger.debug(f"JOB {job_id}: Done finally.\nResult path: results/{job_id}.srt")
+        logger.info(f"JOB {job_id}: Done.")
+        logger.debug(f"JOB {job_id}: Result path: results/{job_id}.srt")
         return f"results/{job_id}.srt"
 
     def transcribe_locally(self, audio_path, model="base", job_id=None, status_path=None):
