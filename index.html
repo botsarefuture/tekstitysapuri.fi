@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Audio Transcription - Tekstitysapuri.fi{% endblock %}
+
+{% block content %}
+<style>
+    h1 {
+        color: #3498db;
+        text-align: center;
+    }
+
+    form {
+        max-width: 400px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #ecf0f1;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    label {
+        display: block;
+        margin-top: 10px;
+    }
+
+    input[type="file"],
+    select,
+    input[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        margin-bottom: 15px;
+        border: 1px solid #3498db;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    input[type="submit"] {
+        background-color: #3498db;
+        color: #ecf0f1;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    input[type="submit"]:hover {
+        background-color: #2980b9;
+    }
+</style>
+
+<h1 class="mt-4">Audio Transcription</h1>
+<form action="/transcribe" method="post" enctype="multipart/form-data">
+    <label for="audio_file">Choose an audio file:</label>
+    <input type="file" id="audio_file" name="audio_file" accept=".wav, .mp3, .m4a, .mov, .mp4" required>
+
+    <label for="model">Choose a model (optional):</label>
+    <select id="model" name="model">
+        <option value="tiny">Tiny Model</option>
+        <option value="base" selected>Basic Model</option>
+        <option value="small">Small Model</option>
+        <option value="medium">Medium Model</option>
+        <option value="large">Large Model</option>
+    </select>
+
+    <input type="submit" value="Transcribe">
+</form>
+{% endblock %}
