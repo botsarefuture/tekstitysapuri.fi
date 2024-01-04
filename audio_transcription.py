@@ -2,6 +2,7 @@
 import argparse
 from datetime import timedelta
 import whisper
+from rerun_transcription import transcribe_with_rerun
 
 # Function to format time in HH:MM:SS,mmm format
 def format_time(seconds):
@@ -19,7 +20,7 @@ def format_time(seconds):
     return formatted_time
 
 # Function to transcribe audio and save as SRT file
-def transcribe_audio(input_audio, model, job_id, status_path):
+def transcribe_audio(input_audio, model, job_id, status_path, lang):
     # Check if the specified model is supported by whisper
     if model not in whisper.available_models():
         raise Exception(f"Model is not available. \nTry one of these models:\n{whisper.available_models()}")
@@ -27,11 +28,8 @@ def transcribe_audio(input_audio, model, job_id, status_path):
     # Load the audio file using whisper library
     audio = whisper.load_audio(input_audio)
     
-    # Load the ASR model using whisper library
-    model = whisper.load_model(model)
-
     # Transcribe the audio using the loaded model
-    result = model.transcribe(audio, word_timestamps=True, verbose=True, job_id=job_id, status_path=status_path)
+    result = transcribe_with_rerun(model, audio, word_timestamps=True, verbose=True, job_id=job_id, status_path=status_path, language=lang)
     
     # Save the transcript to an SRT file
     with open(f"results/{job_id}.srt", 'w') as srt_file:

@@ -1,7 +1,7 @@
 import threading
 import time  # Added time for sleep function
 import logging
-from whis1 import transcribe_audio
+from audio_transcription import transcribe_audio
 import json
 
 # Set the logging level for the entire application
@@ -26,9 +26,9 @@ class TranscriptionClient:
     def __init__(self, status_path=None):
         self.status_path = status_path
 
-    def transcribe_and_get_response(self, audio_path, model="base", job_id=None):
+    def transcribe_and_get_response(self, audio_path, model="base", job_id=None, lang="fi"):
         # Start a new thread for audio transcription
-        transcribe_thread = threading.Thread(target=self.transcribe_locally, args=(audio_path, model, job_id, self.status_path))
+        transcribe_thread = threading.Thread(target=self.transcribe_locally, args=(audio_path, model, job_id, self.status_path, lang))
         transcribe_thread.start()
 
         # Monitor progress in the main thread
@@ -44,9 +44,9 @@ class TranscriptionClient:
         logger.debug(f"JOB {job_id}: Result path: results/{job_id}.srt")
         return f"results/{job_id}.srt"
 
-    def transcribe_locally(self, audio_path, model="base", job_id=None, status_path=None):
+    def transcribe_locally(self, audio_path, model="base", job_id=None, status_path=None, lang=None):
         # Use the whisper script to transcribe audio locally
-        transcribe_audio(audio_path, model, job_id, status_path=status_path)
+        transcribe_audio(audio_path, model, job_id, status_path=status_path, lang=lang)
 
 
 if __name__ == "__main__":

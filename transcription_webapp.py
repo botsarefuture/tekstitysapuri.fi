@@ -1,34 +1,68 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for
 import os
-import uuid  # for generating unique IDs
-from TranscriptionClient import TranscriptionClient
-import threading
+import uuid
+from transcription_client import TranscriptionClient
+from queue_module import Queue
+import time
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['RESULT_FOLDER'] = 'results'
 app.config['STATUS_FOLDER'] = 'status'
 
-# Configure the TranscriptionClient with your server address
-transcription_client = TranscriptionClient(status_path=app.config['STATUS_FOLDER'])
-
 job_status = {}
 
-def transcribe_in_background(audio_path, model, result_id):
-    # Transcribe the audio and get the response
-    response = transcription_client.transcribe_and_get_response(audio_path, model, result_id)
+class Runner:
+    def __init__(self, name):
+        self.name = name
+        self.busy = False
+
+    def run_task(self, task):
+        self.busy = True
+        _, _, result_id, _ = task
+        print(f"{self.name} is running task: {result_id}")
+        time.sleep(2)
+        print(f"{self.name} completed task: {result_id}")
+        self.busy = False
+
+    def is_busy(self):
+        return self.busy
+
+class TranscriptionRunner(Runner):
+    def __init__(self, name, transcription_client):
+        super().__init__(name)
+        self.transcription_client = transcription_client
+
+    def run_task(self, task):
+        super().run_task(task)
+        audio_path, model, result_id, language = task
+        response = self.transcription_client.transcribe_and_get_response(audio_path, model, result_id, lang=language)
+
+        with open(response, "r") as f:
+            response_content = f.read()
+
+        result_file_path = os.path.join(app.config['RESULT_FOLDER'], f"{result_id}.srt")
+        with open(result_file_path, 'w') as result_file:
+            result_file.write(response_content)
+
+        job_status[result_id] = {"status": "completed"}
+
+transcription_client = TranscriptionClient(status_path=app.config['STATUS_FOLDER'])
+runner1 = TranscriptionRunner("Runner 1", transcription_client)
+runner2 = TranscriptionRunner("Runner 2", transcription_client)
+transcription_queue = Queue(runners=[runner1, runner2])
+
+def transcribe_in_background(audio_path, model, result_id, language):
+    response = transcription_client.transcribe_and_get_response(audio_path, model, result_id, lang=language)
 
     with open(response, "r") as f:
         response_content = f.read()
 
-    # Save the result in a file with the unique ID
     result_file_path = os.path.join(app.config['RESULT_FOLDER'], f"{result_id}.srt")
     with open(result_file_path, 'w') as result_file:
         result_file.write(response_content)
 
-    # Update the job status to completed
     job_status[result_id] = {"status": "completed"}
-
 
 @app.route('/')
 def index():
@@ -40,7 +74,6 @@ def transcribe():
         return redirect(request.url)
 
     audio_file = request.files['audio_file']
-
     if audio_file.filename == '':
         return redirect(request.url)
 
@@ -49,17 +82,9 @@ def transcribe():
         audio_file.save(audio_path)
 
         model = request.form.get('model', 'base')
-
+        language = request.form.get('language')
         result_id = str(uuid.uuid4())
-
-        # Start transcription in a separate thread
-        transcription_thread = threading.Thread(
-            target=transcribe_in_background,
-            args=(audio_path, model, result_id)
-        )
-        transcription_thread.start()
-
-        # Redirect to the status page while continuing the transcription in the background
+        transcription_queue.add_task((audio_path, model, result_id, language))
         return redirect(url_for('show_status', result_id=result_id))
 
     return redirect(request.url)
@@ -73,7 +98,6 @@ def set_status(job_id):
 def show_status(result_id):
     return render_template('status.html', result_id=result_id)
 
-
 @app.route("/get_status/<job_id>")
 def get_status(job_id):
     try:
@@ -81,17 +105,12 @@ def get_status(job_id):
         with open(status_path) as f:
             status = f.read()
     except FileNotFoundError:
-        return {"status": "In queque"}
+        return {"status": "In queue"}
 
-    if status.startswith(str(100)):
-        return {"status": "completed"}
-    
-    else:
-        return {"status": status}
-    
+    return {"status": "completed"} if status.startswith(str(100)) else {"status": status}
+
 @app.route('/result/<result_id>')
 def show_result(result_id):
-    # Read the result from the file with the given ID
     result_file_path = os.path.join(app.config['RESULT_FOLDER'], f"{result_id}.srt")
     try:
         with open(result_file_path, 'r') as result_file:

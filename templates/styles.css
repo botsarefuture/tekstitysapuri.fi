@@ -1,0 +1,31 @@
+.html .circle_animation {
+    -webkit-animation: none; /* Remove the initial animation */
+    animation: none;
+}
+
+.css .circle_animation {
+    -webkit-animation: none; /* Remove the initial animation */
+    animation: none;
+}
+
+@keyframes html-animation {
+  to {
+    stroke-dashoffset: 220;
+  }
+}
+
+@keyframes css-animation {
+  to {
+    stroke-dashoffset: 160;
+  }
+}
+
+.html .circle_animation.html-animation {
+    -webkit-animation: html-animation 1s ease-out forwards;
+    animation: html-animation 1s ease-out forwards;
+}
+
+.css .circle_animation.css-animation {
+    -webkit-animation: css-animation 1s ease-out forwards;
+    animation: css-animation 1s ease-out forwards;
+}
