@@ -17,46 +17,14 @@
         text-align: center;
         color: white;
     }
-
-    .progress-ring {
-        width: 120px;
-        height: 120px;
-    }
-
-    .progress-ring__circle {
-        stroke: white;
-        stroke-width: 8;
-        fill: transparent;
-        r: 52;
-        cx: 60;
-        cy: 60;
-        transform: rotate(-90deg);
-        transform-origin: 50% 50%;
-        transition: stroke-dashoffset 0.35s;
-    }
 </style>
 
 <h1 class="status-container">Transcription Status</h1>
 <div class="status-container">
     <p>Status: <span id="transcriptionStatus">Loading...</span></p>
-    <svg class="progress-ring">
-        <circle class="progress-ring__circle" />
-    </svg>
 </div>
 
 <script>
-    var circle = document.querySelector('circle');
-    var radius = circle.r.baseVal.value;
-    var circumference = radius * 2 * Math.PI;
-
-    circle.style.strokeDasharray = `${circumference} ${circumference}`;
-    circle.style.strokeDashoffset = `${circumference}`;
-
-    function setProgress(percent) {
-        const offset = circumference - percent / 100 * circumference;
-        circle.style.strokeDashoffset = offset;
-    }
-
     // Function to fetch and update the transcription status
     function updateStatus() {
         // Get the job_id from the URL
@@ -70,7 +38,7 @@
 
                 if (statusElement) {
                     // Display only the progress percentage
-                    statusElement.textContent = `${data.progress || 0}%`;
+                    statusElement.textContent = `${data.status || 0}%`;
 
                     // Check if status is "completed" and redirect if true
                     if (data.status === 'completed') {
