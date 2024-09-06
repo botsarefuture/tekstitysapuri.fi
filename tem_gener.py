@@ -110,6 +110,7 @@ with open("lang.txt", "w") as f:
 
 exit()
 import sys
+
 sys.exit()
 # Include language options in the HTML template
 html_template = """
@@ -184,10 +185,14 @@ html_template = """
     <input type="submit" value="Transcribe">
 </form>
 {{% endblock %}}
-""".format(language_options)
+""".format(
+    language_options
+)
 
 # Save the modified HTML template to a file
 with open("audio_transcription_template.html", "w") as file:
     file.write(html_template)
 
-print("HTML template with language options generated and saved to 'audio_transcription_template.html'")
+print(
+    "HTML template with language options generated and saved to 'audio_transcription_template.html'"
+)

@@ -31,10 +31,14 @@ def transcribe_with_rerun(
     if rerun_needed and not initial_model == rerun_module:
         print("rerun")
         # Create a new model instance with the better module
-        rerun_model_c = whisper.load_model(rerun_module)  # Replace with your actual class and module selection logic
+        rerun_model_c = whisper.load_model(
+            rerun_module
+        )  # Replace with your actual class and module selection logic
 
         # Rerun detection for the specific segment
-        rerun_result = rerun_model_c.transcribe(audio, **decode_options) # make this able to only rerun the segment
+        rerun_result = rerun_model_c.transcribe(
+            audio, **decode_options
+        )  # make this able to only rerun the segment
 
         # Update the initial result with the rerun results for the specific segment
         initial_result["segments"] = rerun_result["segments"]
